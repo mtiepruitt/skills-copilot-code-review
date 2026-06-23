@@ -868,17 +868,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       const el = document.getElementById("announcement-text");
       if (el && data.message) {
-        let content = data.message;
+        el.textContent = "";
+        el.appendChild(document.createTextNode(data.message));
         if (data.deadline) {
-          const date = new Date(data.deadline + "T00:00:00");
+          const [year, month, day] = data.deadline.split("-").map(Number);
+          const date = new Date(Date.UTC(year, month - 1, day));
           const formatted = date.toLocaleDateString(undefined, {
             year: "numeric",
             month: "long",
             day: "numeric",
+            timeZone: "UTC",
           });
-          content += ` — register by <time datetime="${data.deadline}">${formatted}</time>. Don't lose your spot!`;
+          el.appendChild(document.createTextNode(" \u2014 register by "));
+          const timeEl = document.createElement("time");
+          timeEl.setAttribute("datetime", data.deadline);
+          timeEl.textContent = formatted;
+          el.appendChild(timeEl);
+          el.appendChild(document.createTextNode(". Don't lose your spot!"));
         }
-        el.innerHTML = content;
       }
     } catch (error) {
       console.error("Failed to load announcement:", error);
