@@ -861,8 +861,33 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeRangeFilter,
   };
 
+  // Fetch and render the announcement banner from backend config
+  async function loadAnnouncement() {
+    try {
+      const response = await fetch("/announcement");
+      const data = await response.json();
+      const el = document.getElementById("announcement-text");
+      if (el && data.message) {
+        let content = data.message;
+        if (data.deadline) {
+          const date = new Date(data.deadline + "T00:00:00");
+          const formatted = date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+          content += ` — register by <time datetime="${data.deadline}">${formatted}</time>. Don't lose your spot!`;
+        }
+        el.innerHTML = content;
+      }
+    } catch (error) {
+      console.error("Failed to load announcement:", error);
+    }
+  }
+
   // Initialize app
   checkAuthentication();
   initializeFilters();
   fetchActivities();
+  loadAnnouncement();
 });
