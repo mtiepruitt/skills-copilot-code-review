@@ -861,8 +861,40 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeRangeFilter,
   };
 
+  // Fetch and render the announcement banner from backend config
+  async function loadAnnouncement() {
+    try {
+      const response = await fetch("/announcement");
+      const data = await response.json();
+      const el = document.getElementById("announcement-text");
+      if (el && data.message) {
+        el.textContent = "";
+        el.appendChild(document.createTextNode(data.message));
+        if (data.deadline) {
+          const [year, month, day] = data.deadline.split("-").map(Number);
+          const date = new Date(Date.UTC(year, month - 1, day));
+          const formatted = date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            timeZone: "UTC",
+          });
+          el.appendChild(document.createTextNode(" \u2014 register by "));
+          const timeEl = document.createElement("time");
+          timeEl.setAttribute("datetime", data.deadline);
+          timeEl.textContent = formatted;
+          el.appendChild(timeEl);
+          el.appendChild(document.createTextNode(". Don't lose your spot!"));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load announcement:", error);
+    }
+  }
+
   // Initialize app
   checkAuthentication();
   initializeFilters();
   fetchActivities();
+  loadAnnouncement();
 });
